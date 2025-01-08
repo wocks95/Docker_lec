@@ -1,0 +1,121 @@
+2025.01.08 
+가상 머신 켜기
+
+MobaXtrem 설치하기 (O)
+  -Session 버튼 눌러서 SSH 생성
+  -Remote host : 192.168.56.1  Specify username : kjc   port : 22  
+  -ok
+꿀팁
+ (*자동 문장 완성 키 : Tab
+  *apt search <프로그램>: 찾기
+  *apt install <프로그램> : 설치하기
+  *Ctrl + Insert : 복사)
+--------------------------------------------------------------------------------
+1. jdk 설치하기
+ $ apt search openjdk # 설치할 패키지 이름 확인하기
+ $ sudo apt install openjdk-11-jdk # 설치
+ $ java -version # 설치된 java 버전 확인
+ $ update-alternatives --list java # JAVA_HOME이 어디인지 확인하기 위해 입력
+ $ vi ~/.profile # 환경 설정 파일 편집
+  # JAVA_HOME
+  export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+  export PATH=$JAVA_HOME/bin:$PATH
+ $ source ~/.profile # 환경 설정 파일 변경내용 바로 적용
+
+2. 톰캣 설치하기 (톰캣은 /home 디렉터리에 내려 받음)
+  1)톰캣 홈페이지에서 다운로드 받을 링크 주소 복사하기
+    ->https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.zip
+    
+  $ cd /home
+  $ sudo wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.zip
+   #zip 내려받기
+  $sudo apt update                 # 패키지 관리 도구 업데이트
+  $sudo apt install unzip          # unzip 패키지 설치 (zip 파일의 압축을 푸는 프로그램)
+  $unzip apache-tomcat-9.0.98.zip  # 압축 풀기
+  2) 톰캣 홈페이지에서 다운로드 받을 링크 주소 복사하기 (tar.gz 파일 받은 경우)
+  -> https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz
+  $ cd /opt
+  $ sudo wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.98/bin/apache-tomcat-9.0.98.tar.gz  # tar.gz 내려 받기
+  $ sudo tar -xvzf apache-tomcat-9.0.98.tar.gz  # 압축 풀기 
+  (-x : 압축 풀기,  -v : 처리 과정 화면에 출력, -f : tar 아카이브 파일 기본 옵션) 이후 공통 작업)
+  
+  apche-tomcat-9.0.98 디렉터리를 소유자가 가지도록 소유권을 변경한다.
+  $ sudo chown -R kjc:kjc /home/apche-tomcat-9.0.98 # /home/apche-tomcat-9.0.98 디렉터리의 (-R : 하위디렉터리 포함) 소유권을 kjc 유저로 변경 (kjc:kjc -> owner:group, 사용자는 기본적으로 자신을 그룹으로 가진다.)
+  $ vi ~/.profile # 환경 변수 등록
+  
+  # CATALINA_HOME
+  export CATALINA_HOME=/home/apche-tomcat-9.0.98
+  export PATH=$CATALINA_HOME:$PATH
+  $ source ~/.profile # 환경 변수 적용
+  $ cd ~ # 홈 디렉터리로 이동
+
+  3.MySQL 설치하기
+  $ apt search mysql #MySQL 패키지 이름 확인
+  $ sudo apt install -y mysql-server # MySQL 8.0 설치
+  $ mysql --version # 버전 확인
+  
+  4. 프로젝트 데이터베이스 스크립트 파일(.sql) 실행해서 DB 구축하기
+  $ sudo mysql -u root -p # mysql 실행하고 root 계정으로 접속하기 (비번 물어보면 root 입력)
+  mysql> CREATE USER 'greenit'@'%' IDENTIFIED BY 'greenit';
+  mysql> GRANT ALL PRIVILEGES ON *.* TO 'greenit'; # greenit/greenit 계정 생성
+  mysql> exit
+  (호스트에서 Powershell 실행하고 작업 수행)
+  $ cd <.sql 파일이 저장된 디렉터리>
+  $ scp semiapp.sql <사용자계정>192.168.56.1:~ 
+  # 호스트에 있는 semiapp.sql 파일을 게스트(서버)의 홈 디렉터리로 이동 (MobaXtrem의 경우 SSH Browser에서 드래그로 해결 가능)
+  (MobaXterm으로 다시 서버에 접속하고 작업 수행)
+  $ cat ~/semiapp.sql | mysql -u greenit -p # semiapp.sql 파일을 열고, mysql을 실행하면 해당 스크립트가 자동으로 실행(비번 물어보면 greenit 입력)
+
+  5. 프로젝트 소스 코드 수정하기
+  서버에 톰캣과 mysql이 모두 함께 존재하므로 소스코드에서 데이터베이스 url을 localhost 또는 127.0.0.1로 수정한다.
+
+  6. 프로젝트 빌드하기
+  [프로젝트 우클릭] - [Run As] - [Maven build...] - Goals: clean package 입력
+
+  7. 빌드된 war 파일 서버로 보내기
+  (호스트에서 Powershell 실행하고 작업 수행)
+  $ cd <war 파일이 저장된 디렉터리>
+  $ scp semiapp.war <사용자계정>@192.168.56.1:~
+  
+  8. war 배포하기
+  $mv ~/semiapp.war ~/apache-tomcat-9.0.98/webapps
+  (나에게 권한이 없어서 sudo를 사용해 관리자로 승인
+  sudo  ~/apache-tomcat-9.0.98/bin/stratup.sh
+  stratup.sh 소유자에게 권한이 없음 : rw-r--r--
+  stratup.sh 파일에 실행 권한 주기
+  sudo chmod u+x startup.sh
+  sudo chmod 744 stratup.sh
+  이후 *ls -al ~/apache-tomcat-9.0.98/bin*을 검색하여 권한이 생겼는지 확인)
+  권한이 있는걸 봤을 경우 실행 : ~/apache-tomcat-9.0.98/bin/stratup.sh
+  이후 끄기 : ~/apache-tomcat-9.0.98/bin/shutdown.sh
+  또는
+  $ /home/apache-tomcat-9.0.98/bin/startup.sh  # 톰캣 구동
+  $ /home/apache-tomcat-9.0.98/bin/shutdown.sh  # 톰캣 종료
+
+  9. 가상 머신 네트워크 설정에서 8080 포트 열기
+  [머신]-[설정]-[네트워크]-[어댑터1]-[포트 포워딩] 버튼 클릭 후 규칙 추가
+  192.168.56.1 8080 10.0.2.15 8080
+  
+  10. 배포 확인하기
+  브라우저 열고 http://192.168.56.1:8080/semiapp 
+
+-----------------------------------------------------------------------------------------------
+공개키와 개인키
+
+Powershell 실행 후 작업합니다.
+
+1. ssh-keygen 명령으로 공개키(자물쇠)와 개인키(열쇠)를 만듭니다.
+$ ssh-keygen -t rsa -b 2048 # rsa 알고리즘, 2048비트(256바이트)
+# C:\Users\사용자명\.ssh 디렉터리에 공개키와 개인키가 파일로 생성됩니다.
+# 공개키는 id_rsa.pub 입니다.
+# 개인키는 id_rsa 입니다.
+
+2.공개키는 서버에 저장합니다.
+$ scp C:\Users\사용자명\.ssh\id_rsa.pub <계정명>@<ip주소>:~/.ssh/authorized_keys
+ #공개키는 서버의 ~/.ssh/authorized_keys 파일로 저장합니다.
+
+3. 개인키는 개인PC에 저장합니다.
+#MobaXterm 열고 [Edit Sessions] - [Advanced SSH settings] - [Use private key] - C:
+\Users\사용자명\.ssh\id_rsa 파일을 등록합니다.
+
+이제 더 이상 비밀번호를 입력하지 않아도 접속할 수 있습니다.
