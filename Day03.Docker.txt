@@ -46,6 +46,7 @@ Docker 활용
 4. 혹시 기능 추가나 변경이 필요하면 Container를 수정하지 않고, Image를 수정 한 뒤 Container를 다시 만든다.
 
 -----------------------------------------------------------------
+
 도커 설치하기
  $ sudo apt update # 패키지 관리자 업데이트
  $ sudo apt install -y curl # curl 패키지 설치
