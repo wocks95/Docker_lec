@@ -48,16 +48,35 @@ Docker 활용
 -----------------------------------------------------------------
 
 도커 설치하기
- $ sudo apt update # 패키지 관리자 업데이트
- $ sudo apt install -y curl # curl 패키지 설치
- $ curl -s https://get.docker.com | sudo sh # docker 설치 스크립트 내려 받아서 셸(sh)로 실행하기
- $ docker -v # 설치된 도커  확인
+ $ sudo apt update 
+ # 패키지 관리자 업데이트
+
+ $ sudo apt install -y curl 
+ # curl 패키지 설치
+
+ $ curl -s https://get.docker.com | sudo sh 
+ # docker 설치 스크립트 내려 받아서 셸(sh)로 실행하기
+
+ $ docker -v 
+ # 설치된 도커 버전  확인
+
  $ tail /etc/group #시스템에 존재하는 그룹 확인
+   ...
    docker:x:999: # 그룹명:비밀번호:그룹아이디:그룹소속 사용자
- $ sudo usermod -aG docker $USER # docker 그룹에 현재 사용자 추가
- $ tail /etc/group
-   docker:x:999:kjc # 현재 사용자가 docker 그룹에 추가되었음(sudo 없이 docker 명령을 내리기 위함임)
- $newgrp docker # 변경내용 적용
+
+ $ sudo usermod -aG docker $USER 
+ # docker 그룹에 현재 사용자 추가
+
+ $ tail /etc/group # 시스템에 존재하는 그룹 다시 확인
+ ...
+ docker:x:999:kjc # 현재 사용자가 docker 그룹에 추가되었음(sudo 없이 docker 명령을 내리기 위함임)
+
+ $ newgrp docker 
+ # 변경내용 적용
+
+ ----------------------------------------------
+ 
+ 
 
 
 

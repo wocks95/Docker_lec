@@ -41,7 +41,7 @@ MobaXtrem 설치하기 (O)
   (-x : 압축 풀기,  -v : 처리 과정 화면에 출력, -f : tar 아카이브 파일 기본 옵션) 이후 공통 작업)
   
   apche-tomcat-9.0.98 디렉터리를 소유자가 가지도록 소유권을 변경한다.
-  $ sudo chown -R kjc:kjc /home/apche-tomcat-9.0.98 # /home/apche-tomcat-9.0.98 디렉터리의 (-R : 하위디렉터리 포함) 소유권을 kjc 유저로 변경 (kjc:kjc -> owner:group, 사용자는 기본적으로 자신을 그룹으로 가진다.)
+  $ sudo chown -R kjc:kjc /home/apache-tomcat-9.0.98 # /home/apache-tomcat-9.0.98 디렉터리의 (-R : 하위디렉터리 포함) 소유권을 kjc 유저로 변경 (kjc:kjc -> owner:group, 사용자는 기본적으로 자신을 그룹으로 가진다.)
   $ vi ~/.profile # 환경 변수 등록
   
   # CATALINA_HOME
