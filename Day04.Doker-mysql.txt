@@ -3,23 +3,32 @@
 MySQL 8.0
  /etc/mysql/conf.d  : 환경설정파일 my.cnf 등록시킬 예정 (인코딩 내용 포함)
 
- 바인드 마운트 방식 (호스트 디렉터리 : 컨테이너 디렉터리) - 직접 자주 사용하는 데이터
- -v ~/mysql:/etc/mysql/conf.d (외부에 연결해둠, 만약에 꺼지더라도 초기화가 안됨)
-    ------- ------------------
-    kjc:kjc    root:root
-  
- /etc/mysql/conf.d 디렉터리의 소유자: 그룹이 root:root이므로 ~/mysql 디렉터리의
- 소유자와 그룹을 root로 변경해야함
+* 컨테이너 등록 후 바인드 마운트 / 볼륨 마운트 2개 중 1개를 사용해 작업할 수 있다.
+(* 해당 작업이 필요한 이유는?
+ 컨테이너가 중지되거나 삭제될 경우, /etc/mysql/conf.d (컨테이너 디렉터리)가 날아감
+ 컨테이너 내부 내용을 외부에 연결하여 보관하면 컨테이너가 꺼지더라도 무관하도록 내용을 백업하기 위함)
+ 볼륨 작업을 미리 해두면 같은 이름의 컨테이너를 만들 경우 환경 설정이 그대로 저장되어 있음
+
+
+* 바인드 마운트 방식 (호스트 디렉터리 : 컨테이너 디렉터리) - 직접 자주 사용하는 데이터
+  -v ~/mysql:/etc/mysql/conf.d (외부에 연결해둠, 만약에 꺼지더라도 초기화가 안됨)
+     ------- ------------------
+     kjc:kjc    root:root
+[mysql 디렉터리 생성 및 소유 정보 변경]
+* /etc/mysql/conf.d 디렉터리의 소유자: 그룹이 root:root이므로 ~/mysql 디렉터리의
+  소유자와 그룹을 root로 변경해야함
+
 
  ------------------------------------------
 
  /var/lib/mysql 디렉터리가 mysql의 데이터 저장 디렉터리
  (/etc/my.cnf 환경 설정 파일을 열어보면 확인 가능)
+ 
+* 바인드 마운트 방식 (호스트 디렉터리: 컨테이너 디렉터리) - 직접적으로 사용되는 데이터 (자주 수정하거나 사용되는 경우)
+  -v ~/mysql:/etc/mysql/conf.d 
 
- 데이터 디렉터리를 볼륨 처리
- 볼륨 마운트 방식 (도커볼륨:컨테이너 디렉터리) - 데이터 저장
-
- -v mysql-vol:/var/lib/mysql (테이블 데이터 백업해주는 곳)
+* 볼륨 마운트 방식 (도커볼륨:컨테이너 디렉터리) - 데이터 저장용 데이터
+  -v mysql-vol:/var/lib/mysql (테이블 데이터 백업해주는 곳)
 
 ------------------------------------------------------------------
  환경 변수 : 컨테이너 생성 시 전달하는 변수 값
@@ -28,34 +37,46 @@ MySQL 8.0
  -e MYSQL_PASSWORD=값
  -e TZ=Asia/Seoul
  ------------------------------------------
-window의 '서비스'에서 Mysql을 중지해야한다.
-그 후 리눅스에 들어오면 순서대로 입력한다.
+### windows 운영체제에서 서비스 실행 후 실행중인 Mysql을 중지해야한다.(그 전에 사용한 이력이 있을 경우)
+
+### VirtualBox 네트워크 설정에서 포트 포워딩 규칙 추가 후 가상 머신 시작\
+# 192.168.56.1  3306   10.0.2.15 3306
+
+### 실행 중인 mysql 서비스 확인 및 종료를 위한 lsof 패키지 설치
 $ sudo apt install -y lsof
 # isof 프로그램을 설치하라는 명령어
 
+### 3306 포트를 사용 중인 프로세스 확인
 $ sudo lsof -i:3306
 #PID 값 알아내기
+# ex) COMMAND PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+       mysqld  772 mysql   23u  IPv4  21773      0t0  TCP localhost:mysql (LISTEN)
 
+### mysql 제거
 $ sudo kill PID
 # ex)MySQL의 PID 값 : 772 
-# mysql 제거
 
+### mysql 폴더 생성하기
 $ mkdir ~/mysql
-# mysql 폴더 생성하기
 
+### 컨테이너 내부 /etc/mysql/conf.d 디렉터리의 소유자: 그룹으로 변경(root:root)해야 데이터 백업이 가능함
 $ sudo chown root ~/mysql
-# 소유자를 root로 변경
 $ sudo chgrp root ~/mysql
-# 그룹으로 root으로 변경
 
-$ ls -al
 # 현재 디렉터리에서 목록 확인
+$ ls -al
 
+### 컨테이너 내부 /var/lib/mysql 디렉터리가 mysql의 데이터 디렉터리인데 이 디렉터리를 백업할 볼륨 생성
 $ docker volume create mysql-vol
-# mysql-vol 생성
 
+# mysql-vol 볼륨 상세 보기
 $ docker volume inspect mysql-vol
 
+### 컨테이너 실행
+# -p 호스트포트:컨테이너포트
+# -v 호스트디렉터리:컨테이너디렉터리
+# -v 도커볼륨:컨테이너디렉터리
+# -e 환경변수=값
 
 $ docker run -d \ 컨테이너를 백그라운드에서 실행
 > --name mysql-container \ 컨테이너 이름 정하기
@@ -68,48 +89,116 @@ $ docker run -d \ 컨테이너를 백그라운드에서 실행
 > -e TZ=Asia/Seoul \ 컨테이너의 시간대를 설정함
 > mysql:8.0 이 버전의 Docker 이미지를 사용합니다.
 
+### 컨테이너 동작 확인
+$ docker ps
 
+$ sudo mv ~/my.cnf ~/mysql 
+# my.cnf 환경 설정 파일을 홈 디렉터리 > mysql 폴더에 저장
+(홈 디렉터리에 있는 ~/my.cnf 파일을 홈 디렉터리 > mysql 폴더로 이동)
+
+### my.cnf 환경 설정 파일을 ~/mysql 디렉터리에 만들기 (바인드 마운트에 의해서 컨테이너 내부 /etc/mysql/conf.d 디렉터리에 같은 파일이 생김)
+$ sudo vi ~/mysql/my.cnf
+[client]
+default-character-set = utf8mb4
+[mysql]
+default-character-set = utf8mb4
+[mysqldump]
+default-character-set = utf8mb4
+[mysqld]
+init_connect = 'SET collation_connection = utf8_general_ci'
+init_connect = 'SET NAMES utf8'
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+skip-character-set-client-handshake
+
+### 실행 중인 컨테이너 내부로 들어가기
 $ docker exec -it <컨테이너명> /bin/bash
 # 컨테이너에 접속, 쉘을 실행하고 명령어를 상호작용적으로 입력할 수 있는 환경을 제공
 # 즉 컨테이너 안에서 리눅스 명령어를 실행할 수 있음
 
-# mysql -u root -p
+
+### root 계정으로 mysql 실행하기
+$ mysql -u root -p
 -mysql에 로그인 함
 
+### my.cnf 환경 설정 파일이 잘 적용되었는지 확인
 mysql> status
-# 정보 확인
+--------------
+Server characterset:    utf8mb4
+Db     characterset:    utf8mb4
+Client characterset:    utf8mb4    <- latin1 이면 실패
+Conn.  characterset:    utf8mb4    <- latin1 이면 실패
+--------------
+### greenit 계정에 권한 주기
+mysql> GRANT ALL PRIVILEGES ON *.* TO 'greenit'@'%';
 
-mysql> show databases;
-# 관련된 데이터 확인
-+--------------------+
-| Database           |
-+--------------------+
-| db_semi            |
-| information_schema |
-| mysql              |
-| performance_schema |
-| sys                |
-+--------------------+
+### mysql 종료
+mysql> exit
 
-mysql> use db_semi;
-# db_semi 사용
-
-mysql> SELECT *FRO, tbl_user;
-# tbl_user 확인
-
-mysql> DESC tbl_notice;
-#tbl_notice의 칼럼 확인
-
-mysql>exit
-Bye
+### 컨테이너 종료
 bash-5.1# exit
-exit
 
-$ docker run -d --name tomcat-container -p 8080:8080 tomcat:9.0.98
-# 톰캣 실행 및 별명 짓기 및 ip주소 설정
+### 컨테이너 내부 /tmp 디렉터리로 sql 스크립트 파일 복사하기
+$ docker cp ~/data.sql mysql-container:/tmp
 
+### 실행 중인 컨테이너 내부로 들어가기
+$ docker exec -it mysql-container bash
+
+### /tmp 디렉터리로 복사한 sql 스크립트 파일 실행하기
+bash-5.1# cat /tmp/data.sql | mysql -u greenit -p
+Enter password: greenit
+
+### greenit 계정으로 mysql 실행하기
+bash-5.1# mysql -u greenit -p
+Enter password: greenit
+
+### sql 스크립트 실행 결과 확인해 보기
+mysql> show databases;
+mysql> use db_myapp;
+mysql> select * from tbl_user;
+mysql> insert into tbl_notice values(null, 1, 'test title', 'test contents', now());
+mysql> commit;
+mysql> exit
+bash-5.1# exit
+
+* 도커 볼륨 동작 확인(컨테이너 삭제 후 다시 생성해도 테이블의 데이터가 남아 있는지 확인)
+
+### 컨테이너 중지
+$ docker stop mysql-container
+
+### 컨테이너 삭제
+$ docker rm mysql-container
+
+### 컨테이너 실행
+$ docker run -d \
+--name mysql-container \
+-p 3306:3306 \
+-v mysql-vol:/var/lib/mysql \
+-v ~/mysql:/etc/mysql/conf.d \
+-e MYSQL_ROOT_PASSWORD=root \
+-e MYSQL_USER=greenit \
+-e MYSQL_PASSWORD=greenit \
+-e TZ=Asia/Seoul \
+mysql:8.0
+
+### 컨테이너 동작 확인
 $ docker ps
 
+### 실행 중인 컨테이너 내부로 들어가기
+$ docker exec -it mysql-container bash
+
+### greenit 계정으로 mysql 실행하기
+bash-5.1# mysql -u greenit -p
+Enter password: greenit
+
+### 데이터 확인
+mysql> use db_myapp;
+mysql> select * from tbl_notice;
++-----------+---------+--------------+-----------------+---------------------+
+| notice_id | user_id | notice_title | notice_contents | created_at          |
++-----------+---------+--------------+-----------------+---------------------+
+|         1 |       1 | test title   | test contents   | 2025-01-09 19:37:52 |
++-----------+---------+--------------+-----------------+---------------------+
 
 
 
