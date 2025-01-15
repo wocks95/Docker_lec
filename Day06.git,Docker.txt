@@ -1,0 +1,69 @@
+### 로그 확인하는 방법(오류가 났을 때)
+kjc@server1:~/semiapp$  docker exec -it semiapp-container bash
+root@da51f6c5fd41:/usr/local/tomcat/webapps# more ../logs/localhost.2025-01.-14.log 
+
+### git 설치
+$ sudo apt install -y git
+
+### git 원격지에서 파일 받아오기
+$ git clone <원격지 주소>
+
+### semiapp 디렉터리로 이동
+$ cd ~/semiapp
+
+### Dockerfile4 제작하기
+$ vi Dockerfiler4
+
+ # 베이스 이미지
+ FROM openjdk:11 as base1
+
+ # 작업 디렉터리
+ WORKDIR /
+
+ # 호스트의 myapp 프로젝트 -> 컨테이너에 복사
+ # COPY <host> <container>
+ COPY . .
+
+ # 패키지 관리 도구 업데이트
+ RUN apt update
+
+ # maven 설치
+ RUN apt install -y maven
+
+ # 빌드
+ RUN mvn clean package
+
+ # 베이스 이미지
+ FROM tomcat:9
+
+ # 작업 디렉터리
+ WORKDIR webapps
+
+ # 8080 포트 열기
+ EXPOSE 8080
+
+ # 빌드 결과 배포하기
+ # 빌드 결과는 openjdk:11 베이스 이미지를 이용해 생성하였음
+ # 다른 베이스 이미지의 데이터를 가져올 때는 as 와 --from 옵션을 사용함
+ COPY --from=base1 /target/*.war .
+
+--------------------------------------
+
+### semiapp-image 이미지 만들기
+$ docker image build -t wocks95/semiapp-image:1.0 -f Dockerfile4 .
+
+### semiapp-container 컨테이너 만들기
+$ docker run -d --name semiapp-container --restart=always -p 8080:8080 wocks95/semiapp-image:1.0
+
+### 웹에서 확인하기
+http://192.168.56.1:8080/semiapp/
+--------------------------------------
+
+### 도커허브 가입후 우분투에서 로그인 할때 (semiapp-image 이미지 만들기 이후)
+$ docker login -u wocks95 또는
+$ docker login 후에 추가 인증 받을 것
+
+### 도커허브에 올리기
+$ docker image push wocks95/semiapp-image:1.0
+
+### 도커허브의 Repsoitories에서 확인하기!

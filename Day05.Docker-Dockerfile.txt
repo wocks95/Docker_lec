@@ -37,7 +37,7 @@ $ vi Dockerfile1
 
   #MYSQL 환 경 변 수 설 정
   ENV MYSQL_ROOT_PASSWORD=root
-  ENV MYSQL_DATABASE=db_semiapp
+  ENV MYSQL_DATABASE=db_semi
   ENV MYSQL_USER=greenit
   ENV MYSQL_PASSWORD=greenit
 
@@ -151,7 +151,8 @@ $ sudo chgrp root ~/mysql
 5. 테이블 데이터 백업을 위한 도커 볼륨 생성
 $ docker volume create mysql-vol
 6. 컨테이너 실행 및 확인
-$ docker run -d --name mysql-container -p 3306:3306 -v mysql-vol:/var/lib/mysql -v ~/mysql:/etc/mysql/conf.d --restart=always wocks95/mysql-image:8.0
+$ docker run -d --name mysql-container -p 3306:3306 -v mysql-vol:/var/lib/mysql 
+-v ~/mysql:/etc/mysql/conf.d --restart=always wocks95/mysql-image:8.0
 $ docker ps
 7. 호스트 디렉터리(~/mysql)에 my.cnf 파일 만들어서 도커 컨테이너 환경 설정하기
 $ sudo vi ~/mysql/my.cnf ↓
@@ -183,5 +184,5 @@ Conn.  characterset:    utf8mb4  <<
 mysql> GRANT ALL PRIVILEGES ON *.* TO 'greenit'@'%'; << greenit에 권한 주기
 mysql> exit
 /home/mysql# mysql -u greenit -p
-mysql> USE db_myapp;
+mysql> USE db_semi;
 mysql> DESC tbl_user;
