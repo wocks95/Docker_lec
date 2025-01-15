@@ -13,11 +13,11 @@ AWS 보안 그룹
 1. 일종의 방화벽입니다. 인스턴스에 접속 가능한 IP와 포트를 설정할 수 있습니다.
 2. 보안 그룹 설정
  1) 인바운드 규칙 
-  (1) SSH    : my ip, 22      - 내 자리에서만 접속할 수 있다. 집에서 접속하고 싶으면 집 pc ip주소로 수정해야함
-  (2) MYSQL  : anywhere, 3306   
-  (3) HTTP   : anywhere, 80
-  (4) HTTPS  : anywhere, 443
-  (5) TOMCAT : anywhere, 8080
+  (1) SSH           : my ip, 22      - 내 자리에서만 접속할 수 있다. 집에서 접속하고 싶으면 집 pc ip주소로 수정해야함
+  (2) MYSQL/Aurora  : anywhere, 3306   
+  (3) HTTP          : anywhere, 80
+  (4) HTTPS         : anywhere, 443
+  (5) TOMCAT        : anywhere, 8080
  2) 아웃바운드 규칙 
    모든 트래픽 허용
 

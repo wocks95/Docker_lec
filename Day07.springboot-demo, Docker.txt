@@ -1,0 +1,54 @@
+Day07. 스프링 부트 설치 및 설정 과정
+시스템에서 환경변수 편집에서 JAVA_HOME에서 jdk 11에서 17로 변경하기
+
+스프링 4 설치 진행
+
+lombok.jar 알집 푼 스프링 폴더에 넣고 ini파일을 열어서 경로 작성하기
+
+
+스프링을 열고 작성 후 git에 올리기
+
+스프링 안에서 Dockerfile 작성하기
+
+(springboot는 tomcat이 내장되어 있음)
+
+git에 다시 올리고 가상 머신 켜기
+
+$ git clone <demo원격지 주소>
+
+$ cd demo
+
+$ ls -al
+total 56
+drwxrwxr-x 5 kjc kjc  4096 Jan 15 01:51 .
+drwxr-x--- 9 kjc kjc  4096 Jan 15 01:51 ..
+-rw-rw-r-- 1 kjc kjc   290 Jan 15 01:51 Dockerfile
+drwxrwxr-x 8 kjc kjc  4096 Jan 15 01:51 .git
+-rw-rw-r-- 1 kjc kjc    38 Jan 15 01:51 .gitattributes
+-rw-rw-r-- 1 kjc kjc   395 Jan 15 01:51 .gitignore
+drwxrwxr-x 3 kjc kjc  4096 Jan 15 01:51 .mvn
+-rw-rw-r-- 1 kjc kjc 10665 Jan 15 01:51 mvnw     <- maven build를 하지 않아도 되어있음
+-rw-rw-r-- 1 kjc kjc  7061 Jan 15 01:51 mvnw.cmd
+-rw-rw-r-- 1 kjc kjc  1390 Jan 15 01:51 pom.xml
+drwxrwxr-x 4 kjc kjc  4096 Jan 15 01:51 src
+
+~/demo$ chmod u+x mvnw
+~/demo$ ./mvnw clean package <java17이 없어서 설치하고 다시 실행!
+
+$ vi ~/.profile
+# openjdk-11-jdk 11을 17으로 수정하기
+
+$ source ~/.profile
+# 환경 설정 파일 변경내용 적용하기 
+
+$ cd demo
+# demo 디렉터리로 이동
+
+$ ./mvnw clean package 
+# jar파일 완성시키기
+# BUILD SUCCESS
+
+$ docker image buiild -t demo-image:1.0 --build-arg VERSION=1.0 .
+
+$ docker run -d --name demo-container -p8080:8080 demo-image:1.0
+# 그 전에 만든 demo-container 를 지우고 다시 만듬
