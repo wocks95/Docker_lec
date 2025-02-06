@@ -1,0 +1,68 @@
+### ubuntu 서버를 aws에서 만들고 난 이후에 해야할 것
+$ sudo apt update
+↓
+$ sudo apt install -y curl
+↓
+$ curl -s https://get.docker.com | sudo sh // docker 설치
+↓
+$ sudo usermod -aG docker $USER(ubuntu) // 사용자에게 권한 부여
+↓
+$ newgrp docker
+↓
+$ vi init-db.sh
+/usr/bin/mysql -uroot --password=root db_cicd_member < /home/mysql/schema-data.sql
+↓
+$ Dockerfile (메모장으로 제작)
+----------------------------------------
+FROM mysql:8.0-debian
+
+ARG ROOT_PASSWORD
+ARG USER_NAME
+ARG USER_PASSWORD
+
+ENV MYSQL_DATABASE
+ENV MYSQL_ROOT_PASSWORD=$ROOT_PASSWORD
+ENV MYSQL_USER=$USER_NAME
+ENV MYSQL_PASSWORD=$USER_PASSWORD
+ENV TZ=Asia/Seoul
+
+EXPOSE 3306
+
+RUN apt update
+RUN apt install -y wget
+RUN wget --no-check-certificate https://raw.githubusercontent.com/wocks95
+/cicd_db_script/refs/heads/main/schema-data.sql -P /home/mysql
+RUN chmod 777 /home/mysql/schema-data.sql
+
+COPY init-db.sh /docker-entrypoint-initdb.d
+
+CMD ["mysqld"]
+-----------------------------------------
+↓
+Dockerfile.text에서 .text 지우기
+↓
+Dockerfile을 가상서버안의/home/ubuntu/ 안에 넣기
+↓
+$ docker image build -t wocks95/cicd_db_script:1.0 \
+> --build-arg ROOT_PASSWORD=root \
+> --build-arg USER_NAME=greenit \
+> --build-arg USER_PASSWORD=greenit \
+> -f Dockerfile \
+> .
+↓
+$ docker images // image 확인하기
+↓
+$ docker run -d --name cicd_mysql_container -p 3306:3306 wocks95/cicd_db_script:1.0
+↓
+$ docker ps -a // container 확인하기
+
+DB 워크벤치에서 서버 새로 만들기 
+서버 새로 만들 때  host는 aws에서 만든 ip주소 활용하기
+↓
+db_cicd_member.sql이 잘 열리는지 확인하기
+↓
+$ docker login -u wocks95 // 도커허브에 로그인하기 패스워드까지 입력
+↓
+$ docker image push wocks95/cicd_db_script:1.0 // 도커허브에 올리기
+↓
+### 도커허브의 Repsoitories에서 확인하기!

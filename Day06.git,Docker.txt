@@ -12,7 +12,7 @@ $ git clone <원격지 주소>
 $ cd ~/semiapp
 
 ### Dockerfile4 제작하기
-$ vi Dockerfiler4
+$ vi Dockerfile4
 
  # 베이스 이미지
  FROM openjdk:11 as base1
@@ -59,11 +59,3 @@ $ docker run -d --name semiapp-container --restart=always -p 8080:8080 wocks95/s
 http://192.168.56.1:8080/semiapp/
 --------------------------------------
 
-### 도커허브 가입후 우분투에서 로그인 할때 (semiapp-image 이미지 만들기 이후)
-$ docker login -u wocks95 또는
-$ docker login 후에 추가 인증 받을 것
-
-### 도커허브에 올리기
-$ docker image push wocks95/semiapp-image:1.0
-
-### 도커허브의 Repsoitories에서 확인하기!
